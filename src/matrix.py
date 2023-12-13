@@ -5,8 +5,8 @@ Basic Matrix Class - Key Features:
     containing their sum
   * Naive Matrix Mult - Takes two matrices and returns a new third matrix containing
     the dot product of the two matrices
-
 """
+
 def PANIC (msg):
     raise Exception (msg);
 
@@ -34,7 +34,7 @@ class Matrix:
     
     ## Matrix Operation Functions ##
     def __mul__ (self, other):
-        if (self.col != other.row or self.row != other.col):
+        if (self.col != other.row):
             PANIC ("Tensor Multiplication Collision");
         else:
             return __multiply__ (self, other);    
