@@ -33,23 +33,11 @@ class Matrix:
         return self.con[k]
     
     ## Matrix Operation Functions ##
-    def __multiply__ (self, other):
-        res = Matrix (self.row, other.col);
-        
-        for r in range (self.row):
-            for c in range (other.col):
-                entry = 0;
-                for ra in range (self.col):
-                    entry += self.con[r][ra] * other.con[ra][c];
-                res[r][c] = entry;
-        
-        return res;
-
     def __mul__ (self, other):
         if (self.col != other.row or self.row != other.col):
             PANIC ("Tensor Multiplication Collision");
         else:
-            return self.__multiply__ (other);    
+            return __multiply__ (self, other);    
             
     def __add__ (self, other):
         if (self.col != other.col or self.row != other.row):
@@ -75,10 +63,20 @@ class Matrix:
         for r in range (self.row):
             s += str(self.con[r]) + '\n';
         return s
-    
+ 
+def __multiply__ (a, b):
+        res = Matrix(a.row, b.col)
+        for r in range(a.row):
+            for c in range(b.col):
+                entry = 0
+                for ra in range(a.col):
+                    entry += a.con[r][ra] * b.con[ra][c]
+                res.con[r][c] = entry  # Correctly accessing the result matrix
+        return res
+
 # Test
-rows = 10
-cols = 10
+rows = 5
+cols = 5
 mat = Matrix(rows, cols)
 
 for r in range(rows):
@@ -94,7 +92,7 @@ print (mat);
 
 mat2 = Matrix (rows, cols);
 mat2.ones();
-mat3 = mat * mat2;
+mat3 = mat2 * mat;
 print (mat3);
 
 
