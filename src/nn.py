@@ -1,4 +1,5 @@
-from matrix import Matrix
+#from matrix import Matrix
+import numpy as np
 
 """
 Neural Network 
@@ -59,7 +60,7 @@ class NeuralNetwork:
   # returns the result vector (final output activation values)
   def forward (self, batch) -> Matrix:
     i = 1;
-    res = Matrix (self.num_layers, 1);s
+    res = Matrix (self.num_layers, 1);
     while (i < self.num_layers):
       res[i][0] = relu (self.layer_weights[i-1] * self.layers[i-1]);
       i += 1;
@@ -80,5 +81,103 @@ class NeuralNetwork:
       res += self.layers[i].__str__() + "\n";
     return res;
 
+
+
+#The following is a mini-batch stochastic descent - i.e one sample at a time 
+#instead of whole batches of samples
 nn = NeuralNetwork ([10,10,10]);
 nn.forward();
+
+iterations = 10;
+dataset = none; // Todo 
+
+for step in range (iterations):
+  
+  #Draw random sample from the dataset
+  sample_index = getRandomSample(dataset);
+  
+  # Propogate sample input through network
+  out_pred = forwardPropagate(nn, dataset[sample_index].sample);
+
+  # Calculate Loss Gradient Tensor
+  gradient = backwardPropagate(nn, out_pred, dataset[sample_index].actual_label);
+
+  # Update neural network parameters using the gradient
+  optimize(nn, gradient);
+
+####
+def optimize(nn, gradient):
+   # Iterate Through each layer and update the weight matrix
+   int i = 0;
+   for each layerMatrix in nn.layers:
+      layerMatrix += gradient
+
+def getRandomSample(dataset):
+  pass;
+
+################################################################################
+                     """Forward Propagation Functions"""
+################################################################################
+
+
+# Propagate input sample SAMPLE, through neural network 'NN'
+def forwardPropagate(NeuralNetwork nn, Dataset sample) -> array:
+  # Intilize output tensor, and set it's first layer activation vector to sample
+  out = np.zeros((nn.layers.count), 1);
+  out[0][0] = sample;
+
+  # Iteratively Propagate 
+  for layerIdx in range(0, nn.layers.count):
+    layer = nn.layer[layerIdx];
+    out[layerIdx] = propagateThroughLayer(layer.weights, layer.bias, out, layerIdx);
+  
+  return out
+
+# Propagates Through a single layer -> Returns a Vector
+def propagateThroughLayer(weights, bias, activations, layerIdx):
+  z = linearTransform (weights, bias, activations, layerIdx)
+  finalizedActivation = activationFunction(z)
+  return finalizedActivation;
+
+def linearTransform(weights, bias, activations, layerIdx):
+  return weights * activations[layerIdx - 1] + bias;
+
+def activationFunction(tensor):
+  # Do relu?
+  pass
+
+################################################################################
+                """Backward Propagation Functions"""
+################################################################################
+
+backwardPropagate(nn, activations, predictions):
+  gradient = np.array(nn.layers.count, );
+  # Calculate Initial Last Layer gradients
+  L = -1;
+  for k in range (len(nn.layers[-1])):
+   gradient[L][k] = dloss(activations[L], predictions) * dActivation(act[L]) * dLinearTransform (activations, L);
+  pass;
+  
+  # Recursively Calculate gradient for the rest of the hidden layers
+  for layerIdx in range(nn.layers.count - 1, 0, -1):
+   
+   # For each node 'k' in this layer
+   for k in range(nn.layers[layerIdx].rows):
+    # Calculate δC/δwᴸₖ = sumOf(δaˡₖ/δzˡₖ * δzˡₖ/δwˡₖ * gradient[L + 1][j]) ∀j /
+    for j in range(nn.layerslayerIdx + 1):
+      gradient[layerIdx][k] += dActivation(act[layerIdx][k]) * \
+                               dTransform(act[layerIdx][k])  * \
+                               gradient[layerIdx + 1][j];
+  
+
+def dLoss(np.array activations, prediction):
+  if (activation.shape != prediction.shape):
+    PANIC ("Shape of activation tensor is not equal to shape of prediction tensor");
+  
+  return 
+  pass
+
+def dActivation(activation):
+  pass
+# Derivative of Linear Transform
+def dLinearTransform ()
