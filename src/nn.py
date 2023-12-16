@@ -90,7 +90,7 @@ class Layer:
    def __init__(self, numNeurons, numNeuronsPrev):
       self.rows = numNeurons;
       self.cols = numNeuronsPrev;
-      self.weights = np.zeros((numNeurons, numNeuronsPrev));
+      self.weights = np.ones((numNeurons, numNeuronsPrev));
       self.bias = np.zeros(numNeurons);
     
 
@@ -115,76 +115,76 @@ class NeuralNetwork:
    def __init__ (self, topology):
       self.layers = Layers(topology);
    
+   def getBiasStr(self, layer : Layer):
+    str_repr = "Bias - Entries=" + str(len(layer.bias)) + "\n"
+    for b in layer.bias:
+      str_repr += str(b)
+      str_repr += "\n"
+    return str_repr
+
    def __str__(self):
     str_repr = ""
     for layerIdx in range(self.layers.count):
         layer: Layer = self.layers[layerIdx]
-        str_repr += "Layer " + str(layerIdx) + " - Weights: "
-        str_repr += "#Rows=" + str(layer.weights.shape[0]) + ", "
+        str_repr += "Layer " + str(layerIdx) + "\n"
+        str_repr += "Weights - #Rows=" + str(layer.weights.shape[0]) + ", "
         str_repr += "#Cols=" + str(layer.weights.shape[1]) + "\n"
         str_repr += str(layer.weights)
+        str_repr += "\n" + self.getBiasStr(layer);
         str_repr += "\n\n"
     return str_repr
-      
+
 
 #The following is a mini-batch stochastic descent - i.e one sample at a time 
 #instead of whole batches of samples
 
-iterations = 10;
+
 # dataset = none; // Todo 
 
-for step in range (iterations):
-  
-  #Draw random sample from the dataset
-  sample_index = getRandomSample(dataset);
-  
-  # Propogate sample input through network
-  out_pred = forwardPropagate(nn, dataset[sample_index].sample);
+# ####
+# def optimize(nn, gradient):
+#    # Iterate Through each layer and update the weight matrix
+#    int i = 0;
+#    for each layerMatrix in nn.layers:
+#       layerMatrix += gradient
 
-  # Calculate Loss Gradient Tensor
-  gradient = backwardPropagate(nn, out_pred, dataset[sample_index].actual_label);
-
-  # Update neural network parameters using the gradient
-  optimize(nn, gradient);
-
-####
-def optimize(nn, gradient):
-   # Iterate Through each layer and update the weight matrix
-   int i = 0;
-   for each layerMatrix in nn.layers:
-      layerMatrix += gradient
-
-def getRandomSample(dataset):
-  pass;
 
 # ################################################################################
 #                      """Forward Propagation Functions"""
 # ################################################################################
-# # Propagate input sample SAMPLE, through neural network 'NN'
-# def forwardPropagate(NeuralNetwork nn, Dataset sample) -> array:
-#   # Intilize output tensor, and set it's first layer activation vector to sample
-#   out = np.zeros((nn.layers.count), 1);
-#   out[0][0] = sample;
 
-#   # Iteratively Propagate 
-#   for layerIdx in range(0, nn.layers.count):
-#     layer = nn.layer[layerIdx];
-#     out[layerIdx] = propagateThroughLayer(layer.weights, layer.bias, out, layerIdx);
+#Propagate input sample SAMPLE, through neural network 'NN'
+def forwardPropagate(nn : NeuralNetwork, sample : tuple) -> list:
+  #Initialize output tensor, and set it's first layer activation vector to sample
+  activations = [];
+  activations.append(np.array(sample));
   
-#   return out
+  # Iteratively Propagate 
+  for layerIdx in range(0, nn.layers.count):
+    layer = nn.layers[layerIdx];
+    activations.append(propagateThroughLayer(layer.weights, layer.bias, activations, layerIdx + 1));
+  
+  print ("Printing Activations")
+  for actVec in activations:
+    print (str(actVec))
+  print ("----Done---");
+    
+  return activations
 
-# # Propagates Through a single layer -> Returns a Vector
-# def propagateThroughLayer(weights, bias, activations, layerIdx):
-#   z = linearTransform (weights, bias, activations, layerIdx)
-#   finalizedActivation = activationFunction(z)
-#   return finalizedActivation;
+# Propagates Through a single layer -> Returns a Vector
+def propagateThroughLayer(weights, bias, activations, layerIdx):
+  z = linearTransform (weights, bias, activations, layerIdx)
+  finalizedActivation = activationFunction(z)
+  return finalizedActivation;
 
-# def linearTransform(weights, bias, activations, layerIdx):
-#   return weights * activations[layerIdx - 1] + bias;
+def linearTransform(weights, bias, activations, layerIdx):
+  mat = np.dot (weights, activations[layerIdx - 1]);
+  res = mat + np.transpose(bias);
+  return  res;
 
-# def activationFunction(tensor):
-#   # Do relu?
-#   pass
+def activationFunction(tensor):
+  return np.maximum(0, tensor)
+  
 
 # ################################################################################
 #                 """Backward Propagation Functions"""
