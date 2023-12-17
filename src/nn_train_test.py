@@ -5,7 +5,7 @@ def getRandomSample() -> tuple:
   return np.random.randint(0,100) /100;
   return (np.random.randint(0, 100) / 100, np.random.randint(0, 100) / 100);
 
-nn = NeuralNetwork ([1,4, 1]);
+nn = NeuralNetwork ([1, 1]);
 iterations = 1;
 print (nn);
 

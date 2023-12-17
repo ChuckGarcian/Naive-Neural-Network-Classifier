@@ -168,13 +168,10 @@ def backwardPropagate(nn, activations, predictions) -> Layers:
   delta = np.multiply(np.dot(wlTrans, delta), fPrimeZ);
 
   layerIdx -= 1;
-  print ("This is weights shape" + str(gradient[layerIdx + 1].weights.shape));
   while (layerIdx > -1 * (nn.layers.count)):
     print ("nn.layers.count=" + str(nn.layers.count));
     print ("layerIdx="+ str(layerIdx));
 
-        
-    # δC/δaˡ = (wˡ * δˡ⁺¹ ) * aˡ  
     # δC/δwˡ = (δC/δaˡ⁻¹) * aˡ :: watch video for this part
     gradient[layerIdx].weights = np.dot(delta, np.transpose(activations[layerIdx]))
 
@@ -185,35 +182,10 @@ def backwardPropagate(nn, activations, predictions) -> Layers:
     delta = np.multiply(np.dot(wlTrans, delta, delta), fPrimeZ);
     
     layerIdx -= 1
-      
-  # print ("This is weights shape" + str(gradient[1].weights.shape));
-  # print ("This is weights shape" + str(gradient[0].weights.shape));
-  
-  
-  print ("nn.backprop: Printing Gradient Now:" + str(gradient));
-  
+
+  print ("nn.backprop: Printing Gradient Now:" + str(gradient));  
   return gradient;
 
-  # for k in range (len(nn.layers[-1])):
-  #  gradient[L][k] = 
-  # pass;
-  
-  # Recursively Calculate gradient for the rest of the hidden layers
-  # for layerIdx in range(nn.layers.count - 1, 0, -1): 
-  #  # For each node 'k' in this layer
-  #  print ("bp::layerIdx=" + str(layerIdx));
-  #  np.transpose(gradient[layerIdx - 1])
-  #  gradient[layerIdx].weights = dActivation(activations, layerIdx)        * \
-  #                               dLinearTransform (activations, layerIdx)  * \
-  #                               gradient[layerIdx].weights;
-                                
-  #  for k in range(nn.layers[layerIdx].rows):
-  #   # Calculate δC/δwᴸₖ = sumOf(δaˡₖ/δzˡₖ * δzˡₖ/δwˡₖ * gradient[L + 1][j]) ∀j /
-  #   for j in range(nn.layerslayerIdx + 1):
-  #     gradient[layerIdx][k] += dActivation(act[layerIdx][k]) * \
-  #                              dTransform(act[layerIdx][k])  * \
-  #                              gradient[layerIdx + 1][j];
-  
 #Derivative of the loss function
 def dLoss(activations, prediction, layerIdx):
   print ("DLOS.PREDICTION" + str(activations[layerIdx]));
