@@ -42,8 +42,8 @@ class Layer:
    def __init__(self, numNeurons, numNeuronsPrev):
       self.rows = numNeurons;
       self.cols = numNeuronsPrev;
-      self.weights = np.ones((numNeurons, numNeuronsPrev));
-      self.bias = np.zeros(numNeurons);
+      self.weights = np.random.rand(numNeurons, numNeuronsPrev) 
+      self.bias = np.random.rand(numNeurons);
     
 
 # Represents a fully connected neural network.
@@ -119,7 +119,7 @@ class NeuralNetwork:
 
 #Propagate input sample SAMPLE, through neural network 'NN'
 def forwardPropagate(nn : NeuralNetwork, sample : tuple) -> list:
-  #Initialize output tensor, and set it's first layer activation vector to sample
+  # Initialize output tensor, and set it's first layer activation vector to sample
   activations = [];
   activations.append(np.array(sample));
   
@@ -154,33 +154,41 @@ def activationFunction(tensor):
 #                 """Backward Propagation Functions"""
 # ################################################################################
 
-def backwardPropagate(nn, activations, predictions) -> Layers:
+def backwardPropagate(nn, activations, actual) -> Layers:  
   gradient = Layers(nn.topology);
   # Calculate Initial Last Layer gradients
-  layerIdx = -1;
-  delta = np.multiply(dLoss(activations, predictions, layerIdx), dActivation(activations, layerIdx))
-  print("DELTA=", str(delta));
-  gradient[layerIdx].weights =  np.dot(delta, np.transpose(activations[layerIdx-1]));
-  #Compute error delta for layerIdx
-    # δˡ = ((Wˡ)ᵀ * δˡ⁺¹ ) ⊙ f′(zˡ)
+  layerIdx = -1
+  delta = np.multiply(dActivation(activations, layerIdx), dLoss(activations, actual, layerIdx))
+  gradient[layerIdx].weights = np.dot(delta.reshape(1, -1), activations[layerIdx-1].reshape(-1, 1).T)
+
+  # wlTrans = np.transpose(gradient[layerIdx].weights)
+  # fPrimeZ = dActivation(activations, layerIdx)
+  # dotProduct = np.dot(wlTrans, delta)
+  # delta = np.multiply(dotProduct.reshape(fPrimeZ.shape), fPrimeZ)
+
   wlTrans = np.transpose(gradient[layerIdx].weights);
   fPrimeZ = dActivation(activations, layerIdx)
   delta = np.multiply(np.dot(wlTrans, delta), fPrimeZ);
 
   layerIdx -= 1;
-  while (layerIdx > -1 * (nn.layers.count)):
-    print ("nn.layers.count=" + str(nn.layers.count));
-    print ("layerIdx="+ str(layerIdx));
-
+  while (layerIdx >= -1 * (nn.layers.count)):
     # δC/δwˡ = (δC/δaˡ⁻¹) * aˡ :: watch video for this part
-    gradient[layerIdx].weights = np.dot(delta, np.transpose(activations[layerIdx]))
+   #gradient[layerIdx].weights = np.dot(delta.reshape(1, -1), activations[layerIdx - 1].reshape(-1, 1).T)
+    gradient[layerIdx].weights = np.dot(delta.reshape(-1, 1), activations[layerIdx - 1].reshape(1, -1))
 
+    # gradient[layerIdx].weights = np.dot(delta, np.transpose(activations[layerIdx - 1]))
+    wlTrans = gradient[layerIdx].weights.T
+    fPrimeZ = dActivation(activations, layerIdx - 1)
+    # Ensure delta is a column vector
+    delta = delta.reshape(-1, 1)
+    # Calculate dot product and ensure it's compatible with fPrimeZ shape
+    dotProduct = np.dot(wlTrans, delta).reshape(fPrimeZ.shape)
+    delta = np.multiply(dotProduct, fPrimeZ)
     #Compute error delta for layerIdx
     # δˡ = ((Wˡ)ᵀ * δˡ⁺¹ ) ⊙ f′(zˡ)
-    wlTrans = np.transpose(gradient[layerIdx].weights);
-    fPrimeZ = dActivation(activation, layerIdx)
-    delta = np.multiply(np.dot(wlTrans, delta, delta), fPrimeZ);
-    
+    # wlTrans = np.transpose(gradient[layerIdx].weights);
+    # fPrimeZ = dActivation(activations, layerIdx)
+    # delta = np.multiply(np.dot(wlTrans, delta), fPrimeZ);
     layerIdx -= 1
   print ("---Computed Gradient---")
   print ("---Printing Gradient Now")
@@ -198,8 +206,11 @@ def dLoss(activations, prediction, layerIdx):
 
 #Derivative of the activation function
 def dActivation(activations, layerIdx):
-  print ("DACTIVATION=" + str(np.ceil(activationFunction(activations[layerIdx]))))
-  return np.ceil(activationFunction(activations[layerIdx]));
+    return np.where(activations[layerIdx] > 0, 1, 0)
+
+# def dActivation(activations, layerIdx):
+#   print ("DACTIVATION=" + str(np.ceil(activationFunction(activations[layerIdx]))))
+#   return np.ceil(activationFunction(activations[layerIdx]));
   
 # Derivative of Linear Transform
 def dLinearTransform (activations, layerIdx):
@@ -208,7 +219,7 @@ def dLinearTransform (activations, layerIdx):
 
 def optimize (nn : NeuralNetwork, gradient : Layers):
   for layerIdx in range(nn.layers.count):
-    nn.layers[layerIdx].weights = nn.layers[layerIdx].weights - gradient[layerIdx].weights;
+    nn.layers[layerIdx].weights -= 0.1 * gradient[layerIdx].weights;
   
 
 def lossFunction (output: np.array, actual : np.array):
