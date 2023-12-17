@@ -68,10 +68,10 @@ class Layers:
         layer: Layer = self.__layers[layerIdx]
         str_repr += "Layer " + str(layerIdx) + "\n"
         str_repr += "Weights - #Rows=" + str(layer.weights.shape[0]) + ", "
-        str_repr += "#Cols=" + str(layer.weights.shape[1]) + "\n"
+        str_repr += "#Cols=" + str(layer.weights.shape[1]) + ":\n"
         str_repr += str(layer.weights)
         # str_repr += "\n" + self.getBiasStr(layer);
-        str_repr += "\n\n"
+        
     return str_repr
 
 class NeuralNetwork:
@@ -80,7 +80,7 @@ class NeuralNetwork:
       self.layers = Layers(topology);
    
    def getBiasStr(self, layer : Layer):
-    str_repr = "Bias - Entries=" + str(len(layer.bias)) + "\n"
+    str_repr = "Bias - Entries=" + str(len(layer.bias)) + ":\n"
     for b in layer.bias:
       str_repr += str(b)
       str_repr += "\n"
@@ -128,10 +128,10 @@ def forwardPropagate(nn : NeuralNetwork, sample : tuple) -> list:
     layer = nn.layers[layerIdx];
     activations.append(propagateThroughLayer(layer.weights, layer.bias, activations, layerIdx + 1));
   
-  print ("Printing Activations")
+  print ("--Printing Activations--")
   for actVec in activations:
     print (str(actVec))
-  print ("----Done---");
+  print ("----Done----");
     
   return activations
 
@@ -182,15 +182,18 @@ def backwardPropagate(nn, activations, predictions) -> Layers:
     delta = np.multiply(np.dot(wlTrans, delta, delta), fPrimeZ);
     
     layerIdx -= 1
-
-  print ("nn.backprop: Printing Gradient Now:" + str(gradient));  
+  print ("---Computed Gradient---")
+  print ("---Printing Gradient Now")
+  print (str(gradient));
+  print ("---Finished Printing---");
+  
   return gradient;
 
 #Derivative of the loss function
 def dLoss(activations, prediction, layerIdx):
-  print ("DLOS.PREDICTION" + str(activations[layerIdx]));
-  print ("DLOS.PREDICTION" + str(prediction));
-  print ("DLOS=" + str(2 * (activations[layerIdx] - prediction)))
+  print ("DLOS.ACTUAL=" + str(activations[layerIdx]));
+  print ("DLOS.PREDICTION=" + str(prediction));
+  print ("DLOS.CALC=" + str(2 * (activations[layerIdx] - prediction)))
   return 2 * (activations[layerIdx] - prediction);
 
 #Derivative of the activation function
