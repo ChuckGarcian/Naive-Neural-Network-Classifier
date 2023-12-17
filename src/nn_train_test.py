@@ -18,8 +18,8 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-nn = NeuralNetwork([2, 3, 3, 1])
-iterations = 100
+nn = NeuralNetwork([2, 1])
+iterations = 1000
 print(bcolors.HEADER + "*************Initialized Network - Printing Now*************" + bcolors.ENDC)
 print(nn)
 
@@ -27,7 +27,8 @@ for step in range(iterations):
   print(bcolors.OKBLUE + "*************Starting Step: " + str(step) + "*************" + bcolors.ENDC)
   
   # Draw random sample from the dataset
-  sample = (.25, .25) #getRandomSample()
+  # ssample = (.25, .25) #
+  sample = getRandomSample()
   print(bcolors.OKCYAN + "Chosen Sample=" + str(sample) + bcolors.ENDC)
   
   # Propagate sample input through network
@@ -53,16 +54,30 @@ for step in range(iterations):
   print(bcolors.HEADER + "==== Network Layers After Optimization" + bcolors.ENDC)
   print(nn)
 
-def evaluateNetwork(nn : NeuralNetwork, numTests : int):
-  numCorrect = 0
-  for i in range(numTests):
-    sample = (.25, .25) #getRandomSample()
-    actualLabel = sum(sample);
-    outPred = forwardPropagate(nn, sample)
-    predictedLabel = np.argmax(outPred[-1])  # Assuming outPred[-1] is a probability distribution
-    if predictedLabel == actualLabel:
-      numCorrect += 1
-  accuracy = numCorrect / numTests
-  print(f"Accuracy: {accuracy * 100}%")
+def calcAcc (expected, actual):
+  return 100 - ((expected - actual / expected) * 100)
+
+def evaluateNetwork(nn: NeuralNetwork, numTests: int):
+    MSE = 0
+    for i in range(numTests):
+        sample = getRandomSample()
+        actualLabel = sum(sample)
+        outPred = forwardPropagate(nn, sample)
+        
+        # If it's a regression problem:
+        predictedValue = outPred[-1]  # Assuming outPred[-1] is the final predicted value
+        MSE += (predictedValue - actualLabel)**2
+
+        # If it's a classification problem and you need accuracy:
+        # predictedLabel = np.argmax(outPred[-1]) 
+        # numCorrect += (predictedLabel == actualLabel)
+
+    MSE /= numTests
+    print(f"MSE: {MSE}")
+
+    # If calculating accuracy:
+    # accuracy = numCorrect / numTests
+    # print(f"Accuracy: {accuracy}")
+
 
 evaluateNetwork(nn, 10);
