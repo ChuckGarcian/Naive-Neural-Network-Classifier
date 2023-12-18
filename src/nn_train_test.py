@@ -3,8 +3,8 @@ from nn import *
 from util import *
 
 # Create a neural network
-nn = NeuralNetwork([2, 4, 4, 1])
-iterations = 10
+nn = NeuralNetwork([2, 10,  1])
+iterations = 1000
 
 log("************* Initialized Network - Printing Now *************", bcolors.HEADER)
 print(nn)
@@ -34,10 +34,10 @@ for step in range(iterations):
 
     # Update neural network parameters using the gradient
     log("==== Optimizing Network Weights With Gradient ====", bcolors.OKBLUE)
-    optimize(nn, gradient, .1)
+    optimize(nn, gradient, .01)
     log("==== Finished Optimization ====", bcolors.OKBLUE)
     log("==== Network Layers After Optimization", bcolors.HEADER)
-    print(nn)
+    # log(str(nn))
 
 def evaluateNetwork(nn: NeuralNetwork, numTests: int):
     MSE = 0
