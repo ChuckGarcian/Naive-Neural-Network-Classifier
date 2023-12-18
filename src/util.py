@@ -4,7 +4,8 @@ from nn import *
 def getRandomSample() -> tuple:
   #return np.random.randint(0,100) /100;
   return (np.random.randint(0, 50) / 100, np.random.randint(0, 50) / 100);
-
+def getSampleLabel (sample):
+    return  sum(sample);
 # ANSI escape codes for colors
 class bcolors:
     HEADER = '\033[95m'
@@ -17,7 +18,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-#log_flag = True  # Set to False to disable logging
+# log_flag = True  # Set to False to disable logging
 log_flag = False  # Set to False to disable logging
 def log(message, color):
     global log_flag
@@ -30,3 +31,18 @@ def logc(message):
     global logc_flag
     if logc_flag:
         print(message)
+
+def showForwardProp(activations):
+  logc("--Showing Activations--")
+  for actVec in activations:
+      log(str(actVec), bcolors.OKGREEN)
+      assert actVec.shape[1] == 1
+  logc("----Done----")
+
+
+def showBackwardProp(gradient):
+  logc ("---Computed Gradient---")
+  logc ("---Printing Gradient Now")
+  logc (str(gradient));
+  logc ("---Finished Printing---");
+  
