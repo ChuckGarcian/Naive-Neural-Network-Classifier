@@ -43,7 +43,8 @@ class Layer:
       self.rows = numNeurons;
       self.cols = numNeuronsPrev;
       self.weights = np.random.rand(numNeurons, numNeuronsPrev) 
-      self.bias = np.random.rand(numNeurons);
+      self.bias = np.random.rand(numNeurons, 1);
+      print ("self.bias.shape", self.bias.shape);
     
 
 # Represents a fully connected neural network.
@@ -118,49 +119,54 @@ class NeuralNetwork:
 # ################################################################################
 
 #Propagate input sample SAMPLE, through neural network 'NN'
-def forwardPropagate(nn : NeuralNetwork, sample : tuple) -> list:
-  # Initialize output tensor, and set it's first layer activation vector to sample
-  activations = [];
-  activations.append(np.array(sample));
-  
-  # Iteratively Propagate 
-  for layerIdx in range(0, nn.layers.count):
-    layer = nn.layers[layerIdx];
-    activations.append(propagateThroughLayer(layer.weights, layer.bias, activations, layerIdx + 1));
-  
-  print ("--Printing Activations--")
-  for actVec in activations:
-    print (str(actVec))
-  print ("----Done----");
-    
-  return activations
+# Propagate input sample SAMPLE, through neural network 'NN'
+def forwardPropagate(nn, sample):
+    activations = []  # Initialize with input sample
+    activations.append(np.array(sample));
+    for layer in nn.layers:
+        
+        z = linearTransform(layer.weights, layer.bias, activations[-1])
+        a = activationFunction(z)
+        print ("nn.fwp:a=", str(z));
+        activations.append(np.array(a))
+    assert (len(activations) == nn.layers.count + 1);
+    print("--Printing Activations--")
+    for actVec in activations:
+        print(str(actVec))
+    print("----Done----")
 
-# Propagates Through a single layer -> Returns a Vector
-def propagateThroughLayer(weights, bias, activations, layerIdx) -> np.array:
-  z = linearTransform (weights, bias, activations, layerIdx)
-  finalizedActivation = activationFunction(z)
-  return finalizedActivation;
+    return activations
 
-def linearTransform(weights, bias, activations, layerIdx):
-  mat = np.dot (weights, activations[layerIdx - 1]);
-  res = mat + np.transpose(bias);
-  return  res;
+def linearTransform(weights, bias, activation):
+    z = np.dot(weights, activation) + bias
+    return z
+
+def relu(activation):
+  result = np.array(activation)
+  for i in range(len(activation)):
+    if activation[i] > 0:
+      result[i] = activation[i]
+    else:
+      result[i] = .33 * activation[i];
+  return result
 
 def activationFunction(tensor):
-  return np.maximum(0, tensor)
-  
+    # return relu(tensor);
+    return np.where(tensor > 0, tensor, .01 * tensor) # activations[layerIdx])
+    # return np.maximum(, tensor)  # ReLU activation function
 
 # ################################################################################
 #                 """Backward Propagation Functions"""
 # ################################################################################
-
 def backwardPropagate(nn, activations, actual) -> Layers:  
   gradient = Layers(nn.topology);
   # Calculate Initial Last Layer gradients
   layerIdx = -1
   delta = np.multiply(dActivation(activations, layerIdx), dLoss(activations, actual, layerIdx))
-  gradient[layerIdx].weights = np.dot(delta.reshape(1, -1), activations[layerIdx-1].reshape(-1, 1).T)
-
+  gradient[layerIdx].weights = np.dot(delta, activations[layerIdx-1].T)  
+  # gradient[layerIdx].weights = np.dot(delta.reshape(1, -1), activations[layerIdx-1].reshape(-1, 1).T)
+  gradient[layerIdx].bias = delta;
+  print("nnpy.bias", gradient[layerIdx].bias.shape);
   # wlTrans = np.transpose(gradient[layerIdx].weights)
   # fPrimeZ = dActivation(activations, layerIdx)
   # dotProduct = np.dot(wlTrans, delta)
@@ -171,19 +177,31 @@ def backwardPropagate(nn, activations, actual) -> Layers:
   delta = np.multiply(np.dot(wlTrans, delta), fPrimeZ);
 
   layerIdx -= 1;
-  while (layerIdx >= -1 * (nn.layers.count)):
+  print("len(activations)", len(activations));
+  while (layerIdx > -len(activations)): #-1 * (nn.layers.count)):
+    # print ("cock");
     # δC/δwˡ = (δC/δaˡ⁻¹) * aˡ :: watch video for this part
    #gradient[layerIdx].weights = np.dot(delta.reshape(1, -1), activations[layerIdx - 1].reshape(-1, 1).T)
-    gradient[layerIdx].weights = np.dot(delta.reshape(-1, 1), activations[layerIdx - 1].reshape(1, -1))
-
+   
+    gradient[layerIdx].weights = np.dot(delta, activations[layerIdx - 1].T)
+    # gradient[layerIdx].weights = np.dot(delta.reshape(-1, 1), activations[layerIdx - 1].reshape(1, -1))
+    gradient[layerIdx].bias = delta;
+    
+    # print("\nnnpy.bias", gradient[layerIdx].bias.shape);
     # gradient[layerIdx].weights = np.dot(delta, np.transpose(activations[layerIdx - 1]))
-    wlTrans = gradient[layerIdx].weights.T
-    fPrimeZ = dActivation(activations, layerIdx - 1)
+    # wlTrans = gradient[layerIdx].weights.T
+    # fPrimeZ = dActivation(activations, layerIdx)
     # Ensure delta is a column vector
-    delta = delta.reshape(-1, 1)
+    # delta = delta.reshape(-1, 1)
     # Calculate dot product and ensure it's compatible with fPrimeZ shape
-    dotProduct = np.dot(wlTrans, delta).reshape(fPrimeZ.shape)
-    delta = np.multiply(dotProduct, fPrimeZ)
+    # dotProduct = np.dot(wlTrans, delta)
+    # dotProduct = np.dot(wlTrans, delta).reshape(fPrimeZ.shape)
+    # delta = np.multiply(dotProduct, fPrimeZ)
+
+    wlTrans = np.transpose(gradient[layerIdx].weights);
+    fPrimeZ = dActivation(activations, layerIdx)
+    delta = np.multiply(np.dot(wlTrans, delta), fPrimeZ);
+
     #Compute error delta for layerIdx
     # δˡ = ((Wˡ)ᵀ * δˡ⁺¹ ) ⊙ f′(zˡ)
     # wlTrans = np.transpose(gradient[layerIdx].weights);
@@ -204,9 +222,18 @@ def dLoss(activations, prediction, layerIdx):
   print ("DLOS.CALC=" + str(2 * (activations[layerIdx] - prediction)))
   return 2 * (activations[layerIdx] - prediction);
 
+def drelu(activation):
+  result = np.array(activation)
+  for i in range(len(activation)):
+     result[i] = 1.0 if activation[i] > 0 else 0.33
+  
+  return result
+
 #Derivative of the activation function
 def dActivation(activations, layerIdx):
-    return np.where(activations[layerIdx] > 0, 1, 0)
+    # return drelu(activations[layerIdx]);
+    return np.where(activations[layerIdx] > 0, 1, .01) # activations[layerIdx])
+
 
 # def dActivation(activations, layerIdx):
 #   print ("DACTIVATION=" + str(np.ceil(activationFunction(activations[layerIdx]))))
@@ -217,10 +244,14 @@ def dLinearTransform (activations, layerIdx):
   print ("DLINEARTRANS=" + str (activations[layerIdx - 1]))
   return activations[layerIdx - 1];
 
-def optimize (nn : NeuralNetwork, gradient : Layers):
+def optimize (nn : NeuralNetwork, gradient : Layers, step):
   for layerIdx in range(nn.layers.count):
-    nn.layers[layerIdx].weights -= 0.1 * gradient[layerIdx].weights;
-  
+    print ("shape=", gradient[layerIdx].weights.shape);
+    print ("shape=", nn.layers[layerIdx].weights.shape);
+    print ("bias.shape=", nn.layers[layerIdx].bias.shape);
+    print ("gradient.shape=", gradient[layerIdx].bias.shape)
+    nn.layers[layerIdx].weights -= gradient[layerIdx].weights * step;
+    nn.layers[layerIdx].bias -= gradient[layerIdx].bias * step;
 
 def lossFunction (output: np.array, actual : np.array):
   if not np.array_equal(output, actual):
