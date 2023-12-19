@@ -1,11 +1,22 @@
 # Utility Functions
 from nn import *
+import numpy as np
 
+powa = 100**2
 def getRandomSample() -> tuple:
-  #return np.random.randint(0,100) /100;
-  return (np.random.randint(0, 50) / 100, np.random.randint(0, 50) / 100);
+  # return np.random.randint(0,100) /100;
+  # return (np.random.randint(0, 50) / 100, np.random.randint(0, 50) / 100);
+  res = np.random.randint(0,powa) / powa
+  assert res >= 0
+  assert res <= 1
+  return res
+   # (np.random.randint(0, 50) / 100, np.random.randint(0, 50) / 100);
+
 def getSampleLabel (sample):
-    return  sum(sample);
+    # return  sum(sample);
+    sample = sample * powa
+    return sample % 2 == 0 #sample[0] * sample[1]
+
 # ANSI escape codes for colors
 class bcolors:
     HEADER = '\033[95m'
@@ -33,11 +44,11 @@ def logc(message):
         print(message)
 
 def showForwardProp(activations):
-  logc("--Showing Activations--")
+  print("--Showing Activations--")
   for actVec in activations:
-      log(str(actVec), bcolors.OKGREEN)
+      print(str(actVec.T))
       assert actVec.shape[1] == 1
-  logc("----Done----")
+  print("----Done----")
 
 
 def showBackwardProp(gradient):

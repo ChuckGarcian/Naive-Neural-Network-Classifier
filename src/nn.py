@@ -4,15 +4,53 @@ from util import *
 import pdb
 from nn_functions import *
 
+#Derivative of the loss function
+def d_mae(y_pred, y_true):
+    return np.where(y_pred > y_true, 1, -1)
+
+def d_mse(y_pred, y_true):
+  return 2 * (y_pred -  y_true)
+
+def relu(tensor):
+  return np.maximum(0, tensor)  # ReLU activation function
+
+def dRelu(zL):
+  return np.where(zL > 0, 1, 0)
+
+def leakyRelu(tensor):
+  return np.where(tensor > 0, tensor, .1 * tensor) # activations[layerIdx])
+
+def dLeakyRelu(zL):     
+  return np.where(zL > 0, 1, .1)
+
+def sigmoid(z):
+    z = np.array(z)
+    result = np.zeros_like(z)
+    result[z >= 0] = 1. / (1. + np.exp(-z[z >= 0]))
+    result[z < 0] = np.exp(z[z < 0]) / (1. + np.exp(z[z < 0]))
+    return result
+
+def dSigmoid(zL):
+  return sigmoid(zL) * (1 - sigmoid(zL))
+
+class Activations:
+    RELU = "relu"
+    LEAKY_RELU = "leaky_relu"
+    SIGMOID = "sigmoid"
+
+class LossFuncs:
+    MSE = "mse"
+    MAE = "mae"
+
 # Represents a single layer in the neural network.
 # Maintains the layer weights matrix and bias matrix
 class Layer:
    def __init__(self, numNeurons, numNeuronsPrev):
-      self.rows = numNeurons;
-      self.cols = numNeuronsPrev;
-      self.weights = np.random.rand(numNeurons, numNeuronsPrev) 
-      self.bias = np.random.rand(numNeurons, 1);
-      logc ("self.bias.shape" + str(self.bias.shape));
+    self.rows = numNeurons;
+    self.cols = numNeuronsPrev;
+    self.weights = np.random.rand(numNeurons, numNeuronsPrev) 
+    self.bias = np.random.rand(numNeurons, 1);
+    logc ("self.bias.shape" + str(self.bias.shape));
 
 # Represents a fully connected neural network.
 # Topology is a tuple that specifies the number of neurons in each layer.
@@ -52,17 +90,22 @@ class NeuralNetwork:
      return d_mse(activations[layerIdx], y_actual)
     elif self.__lossFunc == LossFuncs.MAE:
      return d_mae(activations[layerIdx], y_actual)
+   
    def dActivation(self, zL):
     if self.__activationFunc == Activations.RELU:
      return dRelu(zL)
     elif self.__activationFunc == Activations.LEAKY_RELU:
      return dLeakyRelu(zL)
+    elif self.__activationFunc == Activations.SIGMOID:
+      return sigmoid(zL)
 
    def activationFunction(self, tensor):
     if self.__activationFunc == Activations.RELU:
       return relu(tensor)
     elif self.__activationFunc == Activations.LEAKY_RELU:
       return leakyRelu(tensor)
+    elif self.__activationFunc == Activations.SIGMOID:
+      return sigmoid(tensor)
 
    def getBiasStr(self, layer : Layer):
     str_repr = "Bias - Entries=" + str(len(layer.bias)) + ":\n"

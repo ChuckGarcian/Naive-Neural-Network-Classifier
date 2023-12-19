@@ -1,2 +1,3 @@
-# Naive-Neural-Network-Classifier
-Naive/basic implementation of a handwritten digit classifier using the math from this 3Blue1Brown series: https://www.3blue1brown.com/topics/neural-networks.
+# Naive-Neural-Network
+
+This project provides a basic implementation of a neural network using stochastic gradient descent. It includes ReLU, Leaky ReLU, and Sigmoid activation functions, and supports Mean Squared Error (MSE) and Mean Absolute Error (MAE) for loss calculation. The network is tested on tasks like summing digits, multiplying digits, and classifying handwritten digits. Digit classification can be attained with 90% accuracy.
