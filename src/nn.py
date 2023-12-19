@@ -2,6 +2,7 @@
 import numpy as np
 from util import *
 import pdb
+from nn_functions import *
 
 # Represents a single layer in the neural network.
 # Maintains the layer weights matrix and bias matrix
@@ -40,10 +41,29 @@ class Layers:
     return str_repr
 
 class NeuralNetwork:
-   def __init__ (self, topology):
+   def __init__ (self, topology, activationFunc, lossFunc):
       self.topology = topology;
       self.layers = Layers(topology);
+      self.__activationFunc = activationFunc
+      self.__lossFunc = lossFunc
    
+   def dLoss(self, activations, y_actual, layerIdx):
+    if self.__lossFunc == LossFuncs.MSE:
+     return d_mse(activations[layerIdx], y_actual)
+    elif self.__lossFunc == LossFuncs.MAE:
+     return d_mae(activations[layerIdx], y_actual)
+   def dActivation(self, zL):
+    if self.__activationFunc == Activations.RELU:
+     return dRelu(zL)
+    elif self.__activationFunc == Activations.LEAKY_RELU:
+     return dLeakyRelu(zL)
+
+   def activationFunction(self, tensor):
+    if self.__activationFunc == Activations.RELU:
+      return relu(tensor)
+    elif self.__activationFunc == Activations.LEAKY_RELU:
+      return leakyRelu(tensor)
+
    def getBiasStr(self, layer : Layer):
     str_repr = "Bias - Entries=" + str(len(layer.bias)) + ":\n"
     for b in layer.bias:
@@ -63,12 +83,12 @@ class NeuralNetwork:
       
     return str_repr
 
-# ################################################################################
-#                      """Forward Propagation Functions"""
-# ################################################################################
-# Takes row vector (One Dimensional Array) and reshapes to column vector
 def arrToVec(arr) -> np.array:
   return np.array(arr).reshape(-1, 1)
+
+def linearTransform(weights, bias, activation):
+    z = np.dot(weights, activation) + bias
+    return z
 
 #Propagate input sample SAMPLE, through neural network 'NN'
 def forwardPropagate(nn, sample):
@@ -77,36 +97,20 @@ def forwardPropagate(nn, sample):
     
     for layer in nn.layers:    
         z = linearTransform(layer.weights, layer.bias, activations[-1])
-        a = activationFunction(z)
+        a = nn.activationFunction(z)
         logc ("nn.fwp:a=" + str(z));
         activations.append(a)
     
     assert (len(activations) == nn.layers.count + 1);
     return activations
 
-def linearTransform(weights, bias, activation):
-    z = np.dot(weights, activation) + bias
-    return z
-
-def leakyRelu(tensor):
-  return np.where(tensor > 0, tensor, .01 * tensor) # activations[layerIdx])
-
-def relu(tensor):
-  return np.maximum(0, tensor)  # ReLU activation function
-
-def activationFunction(tensor):
-    return leakyRelu(tensor);
-    
-# ################################################################################
-#                 """Backward Propagation Functions"""
-# ################################################################################
 def backwardPropagate(nn, activations, actual) -> Layers:
   gradient = Layers(nn.topology)
   # Calculate Initial Last Layer gradients
   layerIdx = -1
   zL = linearTransform(nn.layers[layerIdx].weights, nn.layers[layerIdx].bias, activations[layerIdx-1])
   zL = arrToVec(zL)
-  delta = np.multiply(dActivation(zL), dLoss(activations, actual, layerIdx))
+  delta = np.multiply(nn.dActivation(zL), nn.dLoss(activations, actual, layerIdx))
   gradient[layerIdx].weights = np.dot(delta, activations[layerIdx - 1].T)
   gradient[layerIdx].bias = delta
   assert (gradient[layerIdx].weights.shape == nn.layers[layerIdx].weights.shape)
@@ -117,7 +121,7 @@ def backwardPropagate(nn, activations, actual) -> Layers:
       zL = linearTransform(nn.layers[layerIdx].weights, nn.layers[layerIdx].bias, activations[layerIdx - 1])
       zL = arrToVec(zL)
       wlTrans = np.transpose(nn.layers[layerIdx + 1].weights)
-      fPrimeZ = dActivation(zL)
+      fPrimeZ = nn.dActivation(zL)
 
       delta = np.multiply(np.dot(wlTrans, delta), fPrimeZ)
       gradient[layerIdx].weights = np.dot(delta, activations[layerIdx - 1].T)
@@ -126,28 +130,6 @@ def backwardPropagate(nn, activations, actual) -> Layers:
       assert (gradient[layerIdx].weights.shape == nn.layers[layerIdx].weights.shape)
       assert (gradient[layerIdx].bias.shape == nn.layers[layerIdx].bias.shape)
   return gradient;
-
-#Derivative of the loss function
-def d_mae(y_pred, y_true):
-    return np.where(y_pred > y_true, 1, -1)
-
-def d_mse(y_pred, y_true):
-  return 2 * (y_pred -  y_true)
-
-def dLoss(activations, y_actual, layerIdx):
-  # return d_mse(activations[layerIdx], y_actual);
-  return d_mae(activations[layerIdx], y_actual);
-
-def dRelu(zL):
-  return np.where(zL > 0, 1, 0)
-
-def dLeakyRelu(zL):     
-  return np.where(zL > 0, 1, .01)
-
-#Derivative of the activation function
-def dActivation(zL):
-    #return dRelu(zL)
-    return  dLeakyRelu(zL)
 
 def optimize (nn : NeuralNetwork, gradient : Layers, step):
   for layerIdx in range(nn.layers.count):

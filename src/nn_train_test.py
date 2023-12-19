@@ -1,9 +1,10 @@
 import numpy as np
 from nn import *
 from util import *
+from nn_functions import *
 
 # Create a neural network
-nn = NeuralNetwork([2, 10, 1, 1])
+nn = NeuralNetwork([2, 10, 1, 1], Activations.LEAKY_RELU, LossFuncs.MAE)
 iterations = 1000
 
 log("************* Initialized Network - Printing Now *************", bcolors.HEADER)
@@ -33,7 +34,7 @@ for step in range(iterations):
 
     # Update neural network parameters using the gradient
     log("==== Optimizing Network Weights With Gradient ====", bcolors.OKBLUE)
-    optimize(nn, gradient, .10)
+    optimize(nn, gradient, .01)
     log("==== Finished Optimization ====", bcolors.OKBLUE)
     log("==== Network Layers After Optimization", bcolors.HEADER)
     logc(str(nn))
